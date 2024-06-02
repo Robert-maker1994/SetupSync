@@ -1,22 +1,19 @@
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader};
 
 fn run_command(id: &str) -> bool {
-    println!("ID {}", id);
-
     let mut binding = Command::new("winget");
 
     let command = binding
-    .arg("install")
-    .arg("--id")
-    .arg(id);
+        .arg("install")
+        .arg("--id")
+        .arg(id);
 
-
-let mut child= command.stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn()
-    .expect("Failed to execute winget list command");   
+    let mut child= command.stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute winget list command");   
 
     if let Some(stdout) = child.stdout.take() {
         let reader = BufReader::new(stdout);
@@ -48,81 +45,45 @@ fn is_app_installed(app_id: &str) -> bool {
         .arg(app_id)
         .output()
         .expect("Failed to execute winget list command");
+    let output = output;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
 
-    if stdout.contains(app_id) {
-        println!("{} is already installed",app_id);
-        stdout.contains(app_id)
+    stdout.contains(app_id)
+}
+
+fn download_application(name: &str, id: &str){
+    println!("Checking if {} is download", name);
+    if !is_app_installed( id) {
+        if run_command(id) {
+            
+            println!("Installed {} [✔]", name);
+        }
     } else {
-        println!("{} is not installed", app_id);
-        stdout.contains(app_id)
+        println!("{} is already installed [✔]", name);
     }
-    
-}
-
-
-
-fn print_task(task: &str) {
-    println!("{}", task);
-}
-
-fn mark_done(task: &str) {
-    println!("[✔] {}", task);
 }
 
 fn main() {
-    let mut application_ids = HashMap::new();
 
+    let mut application_ids = HashMap::new();
+    
     application_ids.insert(String::from("Mail"), "Proton.ProtonMail");
     application_ids.insert(String::from("Pass"), "Proton.ProtonPass");
     application_ids.insert(String::from("VPN"), "Proton.ProtonVPN");
-    application_ids.insert(String::from("VS"), "Microsoft.VisualStudioCode");
-    application_ids.insert(String::from("VS Code"), "Microsoft.VisualStudio.2022.Community");
-    application_ids.insert(String::from("ICloud"), "AppleInc.iCloud_nzyj5cx40ttqa");
+    application_ids.insert(String::from("Visual Studio Code"), "Microsoft.VisualStudioCode");
+    application_ids.insert(String::from("Visual Studio"), "Microsoft.VisualStudio.2022.Community");
+    application_ids.insert(String::from("Apple ICloud"), "AppleInc.iCloud_nzyj5cx40ttqa");
     application_ids.insert(String::from("Notion"), "Notion.Notion");
-    application_ids.insert(String::from("nvm"), "CoreyButler.NVMforWindows");
+    application_ids.insert(String::from("Node Version Manager"), "CoreyButler.NVMforWindows");
 
-    println!("Install Application set up");
-
-    print_task("Installing Proton");
-    if !is_app_installed( application_ids.get("VPN").unwrap()) {
-        if run_command(application_ids.get("VPN").unwrap()) {
-            mark_done("Install ProtonMail")
-        }
-    }
-
-    if !is_app_installed( application_ids.get("Pass").unwrap()) {
-        if run_command(application_ids.get("Pass").unwrap()) {
-            mark_done("Install ProtonMail")
-        }
-    }
-
-    if !is_app_installed( application_ids.get("Mail").unwrap()) {
-        if run_command(application_ids.get("Mail").unwrap()) {
-            mark_done("Install ProtonMail")
-        }
-    }
-    mark_done("Finished Proton download");
-
-    print_task("Installing IDES");
-    if !is_app_installed( application_ids.get("VS").unwrap()) {
-        if run_command(application_ids.get("VS").unwrap()) {
-            mark_done("Installed VS Code ")
-        }
-    }
-    mark_done("Finished IDES");
-
+    println!("Installing you're set up");
+ 
    
-
-    print_task("Installing Dev set up");
-    if !is_app_installed( application_ids.get("nvm").unwrap()) {
-        if run_command(application_ids.get("nvm").unwrap()) {
-            mark_done("Installed Node Version Manager ")
-        }
+    for (name, id) in &application_ids {
+        download_application(name, id);
     }
-    mark_done("Finished DevSetup");
 
-    println!("Install Application set up");
-
+    println!("✔✔✔✔ Install Application set up ✔✔✔✔");
 }
+
